@@ -1,37 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Portfolio</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Campus Help Desk</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: 20px auto; background: #f4f4f4; }
+    input, select, textarea, button { display: block; width: 100%; margin: 6px 0; padding: 8px; box-sizing: border-box; }
+    .card { background: white; padding: 10px; margin: 10px 0; border-radius: 6px; }
+    .card button { display: inline; width: auto; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Mariyam Ahmed</h1>
-    <p>CSE Student | ABES Engineering College</p>
-  </header>
-  <section>
-    <h2>About Me</h2>
-    <p>I am a second-year CSE student learning DSA and web development.</p>
-  </section>
-  <section>
-    <h2>Skills</h2>
-    <ul>
-      <li>Python</li>
-      <li>Node.js and Express</li>
-      <li>HTML and CSS</li>
-    </ul>
-  </section>
-  <section>
-    <h2>Projects</h2>
-    <ul>
-      <li>Student Records App</li>
-      <li>Products REST API</li>
-    </ul>
-  </section>
-  <section>
-    <h2>Contact</h2>
-    <p>Email: its.mariyamahmed@gmail.com</p>
-    <p>GitHub: github.com/loop-snack</p>
-  </section>
+  <h1>Campus Help Desk</h1>
+
+  <input id="name" placeholder="Student Name">
+  <input id="email" placeholder="Email">
+  <select id="category">
+    <option>Hostel</option>
+    <option>Library</option>
+    <option>Classroom</option>
+    <option>Other</option>
+  </select>
+  <textarea id="description" placeholder="Problem Description"></textarea>
+  <select id="priority">
+    <option>Low</option>
+    <option>Medium</option>
+    <option>High</option>
+  </select>
+  <button onclick="addRequest()">Submit Request</button>
+
+  <h2>All Requests</h2>
+  <div id="list"></div>
+
+  <script>
+    async function loadRequests() {
+      const res = await fetch('/api/requests');
+      const data = await res.json();
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      data.forEach(r => {
+        list.innerHTML += `
+          <div class="card">
+            <b>${r.name}</b> (${r.email})<br>
+            ${r.category} | Priority: ${r.priority}<br>
+            ${r.description}<br>
+            <button onclick="updateRequest(${r.id})">Edit</button>
+            <button onclick="deleteRequest(${r.id})">Delete</button>
+          </div>`;
+      });
+    }
+
+    async function addRequest() {
+      const body = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        category: document.getElementById('category').value,
+        description: document.getElementById('description').value,
+        priority: document.getElementById('priority').value
+      };
+      await fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      loadRequests();
+    }
+
+    async function updateRequest(id) {
+      const description = prompt('Enter new description:');
+      if (!description) return;
+      await fetch('/api/requests/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description })
+      });
+      loadRequests();
+    }
+
+    async function deleteRequest(id) {
+      await fetch('/api/requests/' + id, { method: 'DELETE' });
+      loadRequests();
+    }
+
+    loadRequests();
+  </script>
 </body>
 </html>
